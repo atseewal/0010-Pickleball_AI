@@ -26,6 +26,14 @@ pip install requirements.txt
 . '.\download_documents.ps1'
 ```
 
+#### Download and install Microsoft C++ Build Tools
+
+If you have an issue installing the requirements, specifically failing to build wheels for chorma-hnswlib, download and install Microsoft C++ Build Tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+Try installing way more than you think you need. If clicking the **Launch** button in the Visual Studio Installer displays **File not found** or similar in the command prompt window, you probably didn't install all of the components. I had success with MSVC v143 - VS 2022 C++ x64/x86 build tools (latest), Windows 11 SDK (10.0.22621.0), C++ CMake tools for Windows, Testing tools core features - Build Tools, C++ AddressSanitizer, C++ Build Tools core features, C++ 2022 Redistributable Update, and C++ core desktop features installed.
+
+*This step never works right for me, I end up installing and uninstalling things for hours.*
+
 ### Vector Database
 
 TBD
