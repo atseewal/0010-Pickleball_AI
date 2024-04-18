@@ -34,6 +34,14 @@ Try installing way more than you think you need. If clicking the **Launch** butt
 
 *This step never works right for me, I end up installing and uninstalling things for hours.*
 
+#### Create a .env file
+
+The .env file should have the following variables defined.
+
+```
+OPENAI_API_KEY=XXXXXXXXXXXXXXX
+```
+
 ### Vector Database
 
 TBD
