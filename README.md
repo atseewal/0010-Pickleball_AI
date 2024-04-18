@@ -40,6 +40,8 @@ The .env file should have the following variables defined.
 
 ```
 OPENAI_API_KEY=XXXXXXXXXXXXXXX
+LANGCHAIN_API_KEY=XXXXXXXXXXXXXXXXXXXX
+LANGCHAIN_TRACING_V2=true
 ```
 
 ### Vector Database
