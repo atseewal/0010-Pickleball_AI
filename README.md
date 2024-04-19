@@ -1,4 +1,4 @@
-# 0010-Pickleball_AI
+# Pickleball AI App
 AI bot to help parse the rules of Pickleball.
 
 ## Project Goals
