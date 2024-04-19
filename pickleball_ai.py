@@ -13,13 +13,12 @@ dotenv.load_dotenv()
 # Create LLM
 llm = ChatOpenAI(model="gpt-3.5-turbo")
 
-loader = PyPDFLoader("data/USA_Pickleball_Rulebook_2024_v1.pdf")
-pages = loader.load_and_split()
-
 # To create new vectors and save to disk, set this to True
 create_new_vectors = False
 
 if create_new_vectors:
+    loader = PyPDFLoader("data/USA_Pickleball_Rulebook_2024_v1.pdf")
+    pages = loader.load_and_split()
     vectorstore = Chroma.from_documents(documents=pages, embedding=OpenAIEmbeddings(), persist_directory="./chroma_db")
 
 # Load vectors to disk
