@@ -161,3 +161,6 @@ cython_debug/
 
 # Data Folder
 data/
+
+# Chroma Embedding database
+chroma_db
