@@ -46,4 +46,21 @@ LANGCHAIN_TRACING_V2=true
 
 ### Vector Database
 
-TBD
+The vector database used is Chromadb. It is quick to setup and easy to use in LangChain
+
+The vectors are created using OpenAI's `Text-embedding-ada-002-v2` model.
+
+The documents are loaded using `PyPDFLoader`, because this provides the PDF page number. Some work is still left to split the documents by each rule. The input PDF has a really good structure that would lend itself to splitting down into further chunks. This has the potential to save on tokens and provide more concise, accurate results.
+
+For search, the method is *similarity* and the number of documents to retrieve is *3*. The number of documents might need to be changed if the chunking methodology is changed.
+
+## The Architecture
+
+```mermaid
+graph LR
+    A[User] --> B[Pickleball AI<br>App]
+    B <-- Query <br> Rules --> C(Rules <br>vectorstore)
+    B <-- Prompt + Knowledge <br >Response--> D[OpenAI<br>ChatGPT3.5turbo]
+    E[Pickeball Rules <br> 2024 PDF] --> C
+    B -- Log <br> run--> F[Langsmith]
+```
