@@ -64,3 +64,7 @@ graph LR
     E[Pickeball Rules <br> 2024 PDF] --> C
     B -- Log <br> run--> F[Langsmith]
 ```
+
+# Credits
+
+Favicon used in the REST API is from https://www.flaticon.com/free-icons/game-ball, Game-ball icons created by Eklip Studio - Flaticon. Not like an API really needs a favicon, but the browser requests it and it makes it easier to find the browser tab when I'm debugging.
