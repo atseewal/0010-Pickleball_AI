@@ -37,3 +37,6 @@ rag_chain = (
     | llm
     | StrOutputParser()
 )
+
+def rag_chain_function(input_text: str):
+    return rag_chain.invoke(input_text)
