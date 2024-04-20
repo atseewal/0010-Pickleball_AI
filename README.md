@@ -54,6 +54,18 @@ The documents are loaded using `PyPDFLoader`, because this provides the PDF page
 
 For search, the method is *similarity* and the number of documents to retrieve is *3*. The number of documents might need to be changed if the chunking methodology is changed.
 
+### FastAPI
+
+The code is accessed using FastAPI. There is a route `/pickleball-query` created to accept user input questions and return a response JSON object with the AI reponse.
+
+The API is documented and swagger UI can be accessed at the `/docs` route.
+
+There was an annoying error while testing the API from the browser where the browser automatically request a favicon. It makes a request to the `/favicon` route that was failing. To fix this, I found a pickleball icon and created a `/favicon` path. This prevents the error when testing the API in the browser and makes it easier to find the correct tab.
+
+### Langsmith
+
+To track AI traces, Langsmith is used. LangChain has an built in integration, so all parts of chains are logged to Langsmith and can be viewed in the project. This allows the AI to be monitored at each stage of each query, including performance timing.
+
 ## The Architecture
 
 ```mermaid
