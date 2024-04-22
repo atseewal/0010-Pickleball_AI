@@ -8,6 +8,16 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "python": "${command:python.interpreterPath}", // Be careful that this actually runs your environment
+        },
+        {
+            "name": "Python Streamlit: app.py",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": ["run", "${workspaceFolder}/app.py"],
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "justMyCode": true,
         }
     ]
 }
