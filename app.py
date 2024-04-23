@@ -1,107 +1,151 @@
-"""
-# My first app
-Here's our first attempt at using data to create a table:
-"""
-
+from langsmith import Client
+from langchain import memory as lc_memory
+from langchain.memory import ConversationBufferMemory
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_openai import ChatOpenAI
+from langchain.schema.runnable import Runnable, RunnableMap
+from langchain.callbacks.manager import collect_runs
+from streamlit_feedback import streamlit_feedback
+# from expression_chain import get_expression_chain # is a separate file in the example
 import streamlit as st
-import pandas as pd
-import numpy as np
-import time
+import dotenv
 
-df = pd.DataFrame({
-    'first column': [1, 2, 3, 4],
-    'second column': [10, 20, 30, 40]
-})
+from datetime import datetime
 
-df
+dotenv.load_dotenv()
 
-## Write a data frame
+def get_expression_chain(
+    system_prompt: str, memory: ConversationBufferMemory
+) -> Runnable:
+    """Return a chain defined primarily in LangChain Expression Language"""
+    ingress = RunnableMap(
+        {
+            "input": lambda x: x["input"],
+            "chat_history": lambda x: memory.load_memory_variables(x)["chat_history"],
+        }
+    )
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                system_prompt,
+            ),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+    llm = ChatOpenAI(temperature=0.7)
+    chain = ingress | prompt | llm
+    return chain
 
-st.write("Here's our first attempt at using data to create a table:")
-st.write(df)
+client = Client()
 
-## Styler objects
-
-st.write("Styler object")
-dataframe = pd.DataFrame(
-    np.random.randn(10, 20),
-    columns=('col %d' % i for i in range(20))
+st.set_page_config(
+    page_title="Pickleball Chat",
+    page_icon="🏓"
 )
 
-st.dataframe(dataframe.style.highlight_max(axis=0))
+st.subheader("Pickleball Chat")
 
-dataframe = pd.DataFrame(
-    np.random.randn(10, 20),
-    columns=('col %d' % i for i in range(20))
+st.sidebar.header("Menu")
+
+st.sidebar.info(
+    """
+### Info
+An example app, I'm typing this text because the tutorial doesn't match the code and I'm trying to figure out what's going on.
+    """
 )
 
-st.table(dataframe)
-
-st.write("Draw a line chart")
-
-chart_data = pd.DataFrame(
-    np.random.randn(20, 3),
-    columns=['a', 'b', 'c']
+st.sidebar.markdown(
+    """
+### Code
+[Pickleball Chat's Source Code](https://github.com/atseewal/0010-Pickleball_AI/tree/main)
+    """
 )
 
-st.line_chart(chart_data)
-
-st.write("plot a map")
-
-map_data = pd.DataFrame(
-    np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
-    columns=['lat', 'lon']
+_DEFAULT_SYSTEM_PROMPT = (
+    "You are a pickleball rules expert. Rules that are similar to the question asked will be provided to you as context to answer the question. Please be courteous, cheery, and helpful. If you can't answer a question, say that you don't know."
 )
-st.map(map_data)
 
-st.write("Widgets")
+system_prompt = st.sidebar.text_area(
+    "Prompt",
+    _DEFAULT_SYSTEM_PROMPT,
+    help="Customize the AI prompt to get better results",
+    height=200
+)
 
-x = st.slider('x')
-st.write(x, 'squared is', x * x)
+system_prompt = system_prompt.strip().replace("{", "{{").replace("}", "}}")
 
-st.text_input("Your name", key="name")
+memory = lc_memory.ConversationBufferMemory(
+    chat_memory=lc_memory.StreamlitChatMessageHistory(key="langchain_messages"),
+    return_messages=True,
+    memory_key="chat_history"
+)
 
-st.session_state.name
+chain = get_expression_chain(system_prompt, memory)
 
-if st.checkbox('Show dataframe'):
-    chart_data = pd.DataFrame(
-        np.random.randn(20, 3),
-        columns=['a', 'b', 'c']
+st.sidebar.markdown("## Feedback Scale")
+feedback_option = (
+    "thumbs" if st.sidebar.toggle(label="`Faces` ↔ `Thumbs`", value=False) else "faces"
+)
+
+if st.sidebar.button("Clear message history"):
+    print("Clearing message history")
+    memory.clear()
+
+for msg in st.session_state.langchain_messages:
+    avatar = "🏓" if msg.type == "ai" else None
+    with st.chat_message(msg.type, avatar=avatar):
+        st.markdown(msg.content)
+
+if prompt := st.chat_input(placeholder="Ask me about pickleball!"):
+    st.chat_message("user").write(prompt)
+    with st.chat_message("assistant", avatar="🏓"):
+        message_placeholder = st.empty()
+        full_response = ""
+        # Define basic input structure for the chains
+        input_dict = {"input": prompt}
+        
+        with collect_runs() as cb:
+            for chunk in chain.stream(input_dict, config={"tags": ["Streamlit Chat"]}):
+                full_response += chunk.content
+                message_placeholder.markdown(full_response + "👟")
+            memory.save_context(input_dict, {"output": full_response})
+            st.session_state.run_id = cb.traced_runs[0].id
+        message_placeholder.markdown(full_response)
+        
+if st.session_state.get("run_id"):
+    run_id = st.session_state.run_id
+    feedback = streamlit_feedback(
+        feedback_type=feedback_option,
+        optional_text_label="[Optional] Please provide an explanation",
+        key=f"feedback_{run_id}",
     )
     
-    chart_data
-
-
-st.write("layout")
-
-add_selectbox = st.sidebar.selectbox(
-    "How would you like to be contacted?",
-    ("Email", "Home phone", "Mobile Phone")
-)
-
-add_slider = st.sidebar.slider(
-    'select a range of values',
-    0.0, 100.0, (25.0, 75.0)
-)
-
-left_column, right_column = st.columns(2)
-left_column.button("Press me!")
-
-with right_column:
-    chosen = st.radio(
-        'sorting hat',
-        ("Gryffindor", "Ravenclaw",)
-    )
-    st.write(f'you are in {chosen} house!')
-
-'starting a long computation...'
-
-latest_iteration = st.empty()
-bar = st.progress(0)
-
-for i in range(100):
-    latest_iteration.text(f'Itration {i+1}')
-    bar.progress(i + 1)
-    time.sleep(0.1)
-
-'...and now we\'re done!'
+    score_mappings = {
+        "thumbs": {"👍": 1, "👎": 0},
+        "faces": {"😀": 1, "🙂": 0.75, "😐": 0.5, "🙁": 0.25, "😞": 0},
+    }
+    
+    scores = score_mappings[feedback_option]
+    
+    if feedback:
+        score = scores.get(feedback["score"])
+        
+        if score is not None:
+            # Formulate feedback type string incorporating the feedback option and score value
+            feedback_type_str = f"{feedback_option} {feedback['score']}"
+            
+            # Record the feedback with the formulated feedback type string and optional comment
+            feedback_record = client.create_feedback(
+                run_id,
+                feedback_type_str,
+                score=score,
+                comment=feedback.get("text"),
+            )
+            st.session_state.feedback = {
+                "feedback_id": str(feedback_record.id),
+                "score": score,
+            }
+        else:
+            st.warning("Invalid feedback score.")
